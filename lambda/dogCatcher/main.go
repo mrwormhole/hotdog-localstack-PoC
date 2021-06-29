@@ -78,7 +78,7 @@ func Handler(ctx context.Context, req MyRequest) (MyResponse, error) {
 	if hostname == "" {
 		log.Fatal("empty host name")
 	}
-	fmt.Println("HOSTNAME: ", hostname)
+	//fmt.Println("HOSTNAME: ", hostname)
 
 	sess, err := session.NewSession(&aws.Config{
 		Region:                        aws.String("ap-southeast-2"),

@@ -57,14 +57,14 @@ func Handler(ctx context.Context, event events.KinesisEvent) error {
 		dataBytes := record.Kinesis.Data
 		dog := decodeDog(dataBytes)
 		dogGroup.Dogs = append(dogGroup.Dogs, dog)
-		fmt.Printf("%s Processor Data = %#v \n", record.EventName, dog)
+		fmt.Printf("%s Processor Received Data = %#v \n", record.EventName, dog)
 	}
 
 	hostname := os.Getenv("LOCALSTACK_HOSTNAME")
 	if hostname == "" {
 		log.Fatal("empty host name")
 	}
-	fmt.Println("HOSTNAME: ", hostname)
+	//fmt.Println("HOSTNAME: ", hostname)
 
 	sess, err := session.NewSession(&aws.Config{
 		Region:                        aws.String("ap-southeast-2"),
@@ -80,7 +80,7 @@ func Handler(ctx context.Context, event events.KinesisEvent) error {
 
 	for _, dog := range dogGroup.Dogs {
 		if dog.IsAlive {
-			// alive dogs get streamed from dog catcher
+			// alive dogs get streamed to processor from dog catcher
 			dog.IsAlive = false
 			av, err := dynamodbattribute.MarshalMap(dog)
 			if err != nil {
@@ -115,8 +115,8 @@ func Handler(ctx context.Context, event events.KinesisEvent) error {
 			}
 
 		} else {
-			//dead dogs get streamed from hot dog despatcher
-			var deadDog *Dog
+			//dead dogs get streamed to processor from hot dog despatcher
+			var deadDog Dog
 			result, err := db.GetItem(&dynamodb.GetItemInput{
 				Key: map[string]*dynamodb.AttributeValue{
 					"ID": {
@@ -130,13 +130,9 @@ func Handler(ctx context.Context, event events.KinesisEvent) error {
 				continue
 			}
 
-			err = dynamodbattribute.UnmarshalMap(result.Item, deadDog)
+			err = dynamodbattribute.UnmarshalMap(result.Item, &deadDog)
 			if err != nil {
 				fmt.Printf("warning: dynamodb unmarshalling error! %s\n", err)
-				continue
-			}
-			if deadDog == nil {
-				fmt.Printf("warning there is no dog")
 				continue
 			}
 

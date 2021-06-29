@@ -56,14 +56,14 @@ func Handler(ctx context.Context, event events.KinesisEvent) error {
 		dataBytes := record.Kinesis.Data
 		dog := decodeDog(dataBytes)
 		dogGroup.Dogs = append(dogGroup.Dogs, dog)
-		fmt.Printf("%s Despatcher Data = %#v \n", record.EventName, dog)
+		fmt.Printf("%s Despatcher Received Data = %#v \n", record.EventName, dog)
 	}
 
 	hostname := os.Getenv("LOCALSTACK_HOSTNAME")
 	if hostname == "" {
 		log.Fatal("empty host name")
 	}
-	fmt.Println("HOSTNAME: ", hostname)
+	//fmt.Println("HOSTNAME: ", hostname)
 
 	sess, err := session.NewSession(&aws.Config{
 		Region:                        aws.String("ap-southeast-2"),
@@ -78,7 +78,7 @@ func Handler(ctx context.Context, event events.KinesisEvent) error {
 	pubsub := kinesis.New(sess)
 
 	for _, dog := range dogGroup.Dogs {
-		if strings.Contains(dog.Name, "e") || strings.Contains(dog.Name, "a") {
+		if strings.Contains(strings.ToLower(dog.Name), "e") || strings.Contains(strings.ToLower(dog.Name), "a") {
 			fmt.Printf("warning: hot dog %s hasn't been eaten by anyone \n", dog.Name)
 			continue
 		}
