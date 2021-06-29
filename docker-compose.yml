@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+    localstack:
+        container_name: "localstack_main"
+        image: localstack/localstack:latest
+        environment: 
+            - SERVICES=dynamodb,lambda,kinesis
+            - LAMBDA_EXECUTOR=docker_reuse
+            - DOCKER_HOST=unix:///var/run/docker.sock
+            - DEFAULT_REGION=ap-southeast-2
+            - DEBUG=1
+            - DATA_DIR=/tmp/localstack/data
+            - PORT_WEB_UI=8080
+            - LAMBDA_DOCKER_NETWORK=localstack-tutorial
+            - KINESIS_PROVIDER=kinesalite
+        ports:
+            - "53:53"
+            - "53:53/udp"
+            - "443:443"
+            - "4566:4566"
+            - "4571:4571"
+            - "8080:8080"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - localstack_data:/tmp/localstack/data
+        networks:
+            default:
+
+volumes:
+    localstack_data:
+networks:
+    default:
+        external:
+            name: localstack-tutorial
